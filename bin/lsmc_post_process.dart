@@ -26,7 +26,7 @@ Future<void> main() async {
         await _postProcess(config, request);
         break;
       default:
-        staticFiles.serveFile(File(request.uri.path), request);
+        staticFiles.serveFile(File(request.uri.path.substring(1)), request);
         break;
     }
   }
