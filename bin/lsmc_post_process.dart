@@ -116,7 +116,17 @@ Future<void> _postProcess(Config config, HttpRequest request) async {
       throw const AppException(HttpStatus.badRequest, "Process video failed");
     }
     final r3 = await Process.run("ffmpeg", [
-      "-i ${tmpAudioFile.path} -i ${tmpVideoFile.path}  -c:v copy -c:a opus -strict experimental ${outFile.path}"
+      "-i",
+      tmpAudioFile.path,
+      "-i",
+      tmpVideoFile.path,
+      "-c:v",
+      "copy",
+      "-c:a",
+      "opus",
+      "-strict",
+      "experimental",
+      outFile.path
     ]);
     if (r3.exitCode != 0) {
       print(r3.errValue ?? r3.outValue);
