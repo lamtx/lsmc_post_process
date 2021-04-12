@@ -99,13 +99,30 @@ Future<void> _postProcess(Config config, HttpRequest request) async {
     tmpDir = Directory.systemTemp.createTempSync();
     final tmpAudioFile = File("${tmpDir.path}/audio-track.opus");
     final tmpVideoFile = File("${tmpDir.path}/video-track.webm");
-    final outFile = File("${config.outDir}/${input.id}.webm");
-    await Process.run(config.ppRec, [audioFile.path, tmpAudioFile.path]);
-    await Process.run(config.ppRec, [videoFile.path, tmpVideoFile.path]);
-    await Process.run("ffmpeg", [
+    final outFile = File("${config.outVideosPath}/${input.id}.webm");
+    if (!Directory(config.outVideosPath).existsSync()) {
+      Directory(config.outVideosPath).createSync(recursive: true);
+    }
+    final r1 =
+        await Process.run(config.ppRec, [audioFile.path, tmpAudioFile.path]);
+    if (r1.exitCode != 0) {
+      print(r1.errValue ?? r1.outValue);
+      throw const AppException(HttpStatus.badRequest, "Process audio failed");
+    }
+    final r2 =
+        await Process.run(config.ppRec, [videoFile.path, tmpVideoFile.path]);
+    if (r2.exitCode != 0) {
+      print(r2.errValue ?? r2.outValue);
+      throw const AppException(HttpStatus.badRequest, "Process video failed");
+    }
+    final r3 = await Process.run("ffmpeg", [
       "-i ${tmpAudioFile.path} -i ${tmpVideoFile.path}  -c:v copy -c:a opus -strict experimental ${outFile.path}"
     ]);
-
+    if (r3.exitCode != 0) {
+      print(r3.errValue ?? r3.outValue);
+      throw const AppException(
+          HttpStatus.badRequest, "Combine audio and video failed");
+    }
     request.response
       ..statusCode = HttpStatus.ok
       ..write(ErrorResult(message: outFile.path).serializeAsJson());
@@ -145,6 +162,8 @@ class Config {
   );
 
   String get ppRec => "$janusDir/bin/janus-pp-rec";
+
+  String get outVideosPath => "$outDir/videos";
 
   static final DataParser<Config> parser = (reader) => Config(
         port: reader.readNullableInt("port") ?? defaultConfig.port,
@@ -195,4 +214,10 @@ extension on File {
     final i = path.lastIndexOf(Platform.pathSeparator);
     return i == -1 ? path : path.substring(i + 1);
   }
+}
+
+extension on ProcessResult {
+  String? get outValue => this.stdout as String?;
+
+  String? get errValue => this.stderr as String?;
 }
