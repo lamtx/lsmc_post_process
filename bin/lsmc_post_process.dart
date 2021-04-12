@@ -13,8 +13,8 @@ import 'package:net/net.dart';
 
 Future<void> main() async {
   final config = _loadConfig() ?? Config.defaultConfig;
+  print(config);
   final staticFiles = VirtualDirectory(config.outDir);
-
   final requests = await HttpServer.bind(InternetAddress.anyIPv4, config.port);
   final ips = await NetworkInterface.list();
   print(
@@ -26,7 +26,8 @@ Future<void> main() async {
         await _postProcess(config, request);
         break;
       default:
-        staticFiles.serveFile(File(request.uri.path.substring(1)), request);
+        final file = File.fromUri(request.uri);
+        staticFiles.serveFile(File(config.outDir + file.path), request);
         break;
     }
   }
@@ -161,13 +162,17 @@ class Config {
     required this.janusDir,
   });
 
+  @override
+  String toString() =>
+      'Config{port: $port, outDir: $outDir, janusDir: $janusDir}';
+
   final int port;
   final String outDir;
   final String janusDir;
 
   static const defaultConfig = Config(
     port: 4046,
-    outDir: "/home/ubuntu/lsmc_post_process",
+    outDir: "C:\\Users\\May\\Desktop",
     janusDir: "/opt/janus",
   );
 
