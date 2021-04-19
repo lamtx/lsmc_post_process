@@ -7,5 +7,5 @@
 /// Visit http://localhost:4046 into your browser.
 
 import 'app/app.dart';
-
+// dart compile exe bin/main.dart -o ~/bin/lsmc-pp
 Future<void> main() => App().run();
