@@ -17,7 +17,7 @@ class Config {
 
   static const defaultConfig = Config(
     port: 4046,
-    outDir: "/home/ubuntu/lsmc_post_process",
+    outDir: "/home/may/lsmc_post_process",
     janusDir: "/opt/janus",
   );
 
